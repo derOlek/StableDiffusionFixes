@@ -61,6 +61,12 @@ def parse_args():
         help="The prompt with identifier specifying the instance",
     )
     parser.add_argument(
+        "--instance_name",
+        type=str,
+        default=None,
+        help="The name of the custom instance. Will replace the word [V] in the custom promts",
+    )
+    parser.add_argument(
         "--class_prompt",
         type=str,
         default=None,
@@ -216,6 +222,7 @@ class DreamBoothDataset(Dataset):
         self,
         instance_data_root,
         instance_prompt,
+        instance_name,
         tokenizer,
         class_data_root=None,
         class_prompt=None,
@@ -239,9 +246,13 @@ class DreamBoothDataset(Dataset):
                 print("Loaded the following prompts:")
                 print(str(self.promts_dict))
 
+        for k in self.promts_dict.keys():
+            self.promts_dict[k] = self.promts_dict[k].replace("[V]", self.instance_name)
+
         self.instance_images_path = list(Path(instance_data_root).glob("[!.]*[!t][!x][!t]"))
         self.num_instance_images = len(self.instance_images_path)
         self.instance_prompt = instance_prompt
+        self.instance_name = instance_name
         self._length = self.num_instance_images
 
         if class_data_root is not None:
@@ -468,6 +479,7 @@ def main():
     train_dataset = DreamBoothDataset(
         instance_data_root=args.instance_data_dir,
         instance_prompt=args.instance_prompt,
+        instance_name=args.instance_name,
         class_data_root=args.class_data_dir if args.with_prior_preservation else None,
         class_prompt=args.class_prompt,
         tokenizer=tokenizer,
