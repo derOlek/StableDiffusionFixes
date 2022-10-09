@@ -244,11 +244,12 @@ class DreamBoothDataset(Dataset):
             for p in individual_promts_path:
                 dict = eval(open(p).read())
                 self.promts_dict = {**self.promts_dict, **dict}
-                print("Loaded the following prompts:")
-                print(str(self.promts_dict))
 
         for k in self.promts_dict.keys():
             self.promts_dict[k] = self.promts_dict[k].replace("[V]", self.instance_name)
+
+        print("Loaded the following prompts:")
+        print(str(self.promts_dict))
 
         self.instance_images_path = list(Path(instance_data_root).glob("[!.]*[!t][!x][!t]"))
         self.num_instance_images = len(self.instance_images_path)
