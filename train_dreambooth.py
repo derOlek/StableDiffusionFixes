@@ -232,6 +232,7 @@ class DreamBoothDataset(Dataset):
         self.size = size
         self.center_crop = center_crop
         self.tokenizer = tokenizer
+        self.instance_name = instance_name
 
         self.instance_data_root = Path(instance_data_root)
         if not self.instance_data_root.exists():
@@ -252,7 +253,6 @@ class DreamBoothDataset(Dataset):
         self.instance_images_path = list(Path(instance_data_root).glob("[!.]*[!t][!x][!t]"))
         self.num_instance_images = len(self.instance_images_path)
         self.instance_prompt = instance_prompt
-        self.instance_name = instance_name
         self._length = self.num_instance_images
 
         if class_data_root is not None:
