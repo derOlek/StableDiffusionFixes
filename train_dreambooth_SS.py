@@ -250,8 +250,6 @@ class DreamBoothDataset(Dataset):
 
         print("Loaded the following prompts:")
         print(str(self.promts_dict))
-        print("Fallback prompt:")
-        print(str(instance_prompt))
 
         self.instance_images_path = list(Path(instance_data_root).glob("[!.]*[!t][!x][!t]"))
         self.num_instance_images = len(self.instance_images_path)
