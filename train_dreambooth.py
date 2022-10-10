@@ -61,6 +61,12 @@ def parse_args():
         help="The prompt with identifier specifying the instance",
     )
     parser.add_argument(
+        "--instance_name",
+        type=str,
+        default=None,
+        help="The name of the custom instance. Will replace the word [V] in the custom promts",
+    )
+    parser.add_argument(
         "--class_prompt",
         type=str,
         default=None,
@@ -216,6 +222,7 @@ class DreamBoothDataset(Dataset):
         self,
         instance_data_root,
         instance_prompt,
+        instance_name,
         tokenizer,
         class_data_root=None,
         class_prompt=None,
@@ -225,27 +232,31 @@ class DreamBoothDataset(Dataset):
         self.size = size
         self.center_crop = center_crop
         self.tokenizer = tokenizer
+        self.instance_name = instance_name
 
         self.instance_data_root = Path(instance_data_root)
         if not self.instance_data_root.exists():
             raise ValueError("Instance images root doesn't exists.")
         
+        self.instance_images_path = list(Path(instance_data_root).glob("[!.]*[!t][!x][!t]"))
+        self.num_instance_images = len(self.instance_images_path)
+        self.instance_prompt = instance_prompt
+        self._length = self.num_instance_images
         self.promts_dict = {}
+        
         individual_promts_path = list(Path(instance_data_root).glob("*.txt"))
         if len(individual_promts_path) > 0:
             for p in individual_promts_path:
                 dict = eval(open(p).read())
                 self.promts_dict = {**self.promts_dict, **dict}
 
+        for k in self.promts_dict.keys():
+            self.promts_dict[k] = self.promts_dict[k].replace("[V]", self.instance_name)
+
         print("Loaded the following prompts:")
         print(str(self.promts_dict))
         print("Fallback prompt:")
-        print(str(instance_prompt))
-
-        self.instance_images_path = list(Path(instance_data_root).glob("[!.]*[!t][!x][!t]"))
-        self.num_instance_images = len(self.instance_images_path)
-        self.instance_prompt = instance_prompt
-        self._length = self.num_instance_images
+        print(self.instance_prompt)
 
         if class_data_root is not None:
             self.class_data_root = Path(class_data_root)
@@ -471,6 +482,7 @@ def main():
     train_dataset = DreamBoothDataset(
         instance_data_root=args.instance_data_dir,
         instance_prompt=args.instance_prompt,
+        instance_name=args.instance_name,
         class_data_root=args.class_data_dir if args.with_prior_preservation else None,
         class_prompt=args.class_prompt,
         tokenizer=tokenizer,
